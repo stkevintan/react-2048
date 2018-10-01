@@ -1,7 +1,5 @@
 import React, { Component } from 'react'
 import styled from 'react-emotion'
-const lightColor = 'rgb(238, 228, 218)'
-const darkColor = 'rgb(238, 228, 218)'
 
 
 const grids = []
@@ -37,7 +35,7 @@ export default class Board extends Component {
   }
 }
 
-const Box = styled.div`
+const Box = styled('div')`
   position: relative;
   background: #BBADA1;
   border-radius: 2px;
@@ -48,13 +46,13 @@ const Box = styled.div`
   align-items: cneter;
 `;
 
-const BoxRow = styled.div`
+const BoxRow = styled('div')`
   display:flex;
   justify-content: center;
   align-items: center;
 `;
 
-const Grid = styled.div`
+const Grid = styled('div')`
   width: 100px;
   height: 100px;
   font-size: 55px;

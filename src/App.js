@@ -357,7 +357,7 @@ class App extends Component {
 }
 
 
-const Frame = styled.div`
+const Frame = styled('div')`
   display: inline-block;
   position: relative;
   margin: 20px auto;
@@ -365,7 +365,7 @@ const Frame = styled.div`
   box-shadow: 1px 1px 1px rgba(0,0,0,0.2), -1px -1px 1px rgba(0,0,0,0.1);
 `;
 
-const Cover = styled.div`
+const Cover = styled('div')`
   position: absolute;
   top: 0;
   left: 0;
@@ -374,7 +374,7 @@ const Cover = styled.div`
   background: rgba(0,0,0,0.2);
 `;
 
-const Score = styled.div`
+const Score = styled('div')`
   text-align: left;
   margin-bottom: 10px;
 `;
