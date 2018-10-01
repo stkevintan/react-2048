@@ -1,23 +1,32 @@
 import React, { Component } from 'react'
-import styled, { css } from 'react-emotion'
-import Color from 'color'
+import styled from 'react-emotion'
 const lightColor = 'rgb(238, 228, 218)'
 const darkColor = 'rgb(238, 228, 218)'
 
+
+const grids = []
+
+for (let i = 0; i < 4; i++) {
+  grids[i] = []
+  for (let j = 0; j < 4; j++) {
+    grids[i].push(i * 4 + j)
+  }
+}
+
+const keys = [0, 1, 2, 3]
+
 export default class Board extends Component {
+
   render() {
-    const keys = [0, 1, 2, 3]
+    const { action } = this.props
     return (
-      <Box>
+      <Box className="grids">
         {
-          this.props.grids.map((grid, index) => (
+          grids.map((grid, index) => (
             <BoxRow key={keys[index]}>
               {
-                grid.map((gridItem, index) => (
-                  <Grid key={keys[index]} >
-                    {gridItem === 0 ? null :
-                      <div className={`tile tile-${gridItem}`}>{gridItem}</div>}
-                  </Grid>
+                grid.map((cell, index2) => (
+                  <Grid className={`grid-${index}-${index2}`} key={keys[index2]} />
                 ))
               }
             </BoxRow>
@@ -29,17 +38,19 @@ export default class Board extends Component {
 }
 
 const Box = styled.div`
+  position: relative;
   background: #BBADA1;
   border-radius: 2px;
+  padding: 5px;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: center;
   align-items: cneter;
 `;
 
 const BoxRow = styled.div`
   display:flex;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
 `;
 

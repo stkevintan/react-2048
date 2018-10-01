@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import styled from 'react-emotion'
+import logo from './logo.svg';
+import styled, { css, keyframes } from 'react-emotion'
 import './App.css';
 import Board from './Board'
-import animate, { easeInCubic } from './animate';
-import ReactSwipeEvents from './ReactSwipeEvents'
+import animate from './animate';
+
 
 const keyMap = {
   37: 'left',
@@ -35,17 +36,26 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.wrapEl = document.querySelector('.grids')
-    this.wrapRect = this.wrapEl.getBoundingClientRect()
     const action = []
     for (let i = 0; i < 2; i++) {
       action.push({ type: 'create', ...this.generateOneGrid() })
     }
+    this.wrapEl = document.querySelector('.grids')
+    this.wrapRect = this.wrapEl.getBoundingClientRect()
     this.dispatch(action)
     document.addEventListener('keyup', e => {
       const dir = keyMap[e.keyCode]
-      if (!dir) return
-      switch (dir) {
+
+
+
+
+
+
+
+
+ 
+     if (!dir) return
+ç      switch (dir) {
         default: return
         case 'up': return this.handleUpCommand()
         case 'down': return this.handleDownCommand()
@@ -55,17 +65,12 @@ class App extends Component {
     })
   }
 
-  dispatch = async (action) => {
+  dispatch = (action) => {
     console.log(action)
-    const asyncCreateTask = []
-    const asyncMoveTask = []
     for (let i = 0; i < action.length; i++) {
-      if (action[i].type === 'create') asyncCreateTask.push(this.dispatchCreate(action[i]))
-      if (action[i].type === 'move') asyncMoveTask.push(this.dispatchMove(action[i]))
+      if (action[i].type === 'create') this.dispatchCreate(action[i])
+      if (action[i].type === 'move') this.dispatchMove(action[i])
     }
-    await Promise.all(asyncMoveTask)
-    await Promise.all(asyncCreateTask)
-    console.log('all animate done!')
   }
 
   getRelativeRect = (el) => {
@@ -78,7 +83,7 @@ class App extends Component {
     }
   }
 
-  dispatchCreate = async ({ pos, val }) => {
+  dispatchCreate = ({ pos, val }) => {
     const [x, y] = pos
     const el = document.querySelector(`.grid-${x}-${y}`)
     const tileEl = document.createElement('div')
@@ -90,13 +95,9 @@ class App extends Component {
     width: ${elRect.width}px;
     line-height: ${elRect.height}px;
     `
-    tileEl.className = `tile tile-${val} tile-${x}-${y}`
+    tileEl.className = `tile tile-${val} ${tileShow} tile-${x}-${y}`
     tileEl.textContent = val
     this.wrapEl.appendChild(tileEl)
-    await animate.exec(percent => {
-      tileEl.style.opacity = 1 * percent
-      tileEl.style.transform = `scale(${1 * percent})`
-    }, 300, easeInCubic)
   }
 
   dispatchMove = async ({ from, to }) => {
@@ -111,17 +112,14 @@ class App extends Component {
     const deltaTop = targetRect.y - fromRect.y
     // move fromEl to targetEl
     fromEl.style.zIndex = 0
-    const firstAnimate = async () => {
-      await animate.exec(percent => {
-        if (!fromEl) return
-        fromEl.style.left = `${percent * (deltaLeft) + fromRect.x}px`
-        fromEl.style.top = `${percent * (deltaTop) + fromRect.y}px`
-      }, 100)
-    }
-    const secondAnimate = async () => {
-      if (toEl) {
-        const tileEl = document.createElement('div')
-        tileEl.style.cssText = `
+    animate.exec(percent => {
+      if (!fromEl) return
+      fromEl.style.left = `${percent * (deltaLeft) + fromRect.x}px`
+      fromEl.style.top = `${percent * (deltaTop) + fromRect.y}px`
+    }, 100)
+    if (toEl) {
+      const tileEl = document.createElement('div')
+      tileEl.style.cssText = `
         position: absolute; 
         left:${targetRect.x}px; 
         top: ${targetRect.y}px;
@@ -130,24 +128,22 @@ class App extends Component {
         transform: scale(0)
         z-index: 10
       `
-        tileEl.textContent = this.grids[tx][ty]
-        tileEl.className = toEl.className.replace(/\btile-\d+\b/, `tile-${this.grids[tx][ty]}`)
-        this.wrapEl.appendChild(tileEl)
-        await animate.exec(percent => {
-          if (percent <= 0.5) {
-            tileEl.style.transform = `scale(${1.2 * 2 * percent})`
-          } else {
-            tileEl.style.transform = `scale(${1.2 - 0.2 * 2 * (percent - 0.5)})`
-          }
-        }, 250)
-
-        if (fromEl.parentElement === this.wrapEl) this.wrapEl.removeChild(fromEl)
-        if (toEl.parentElement === this.wrapEl) this.wrapEl.removeChild(toEl)
-      } else {
-        fromEl.className = fromEl.className.replace(/\btile-\d+-\d+\b/, `tile-${tx}-${ty}`)
-      }
+      tileEl.textContent = this.grids[tx][ty]
+      tileEl.className = toEl.className.replace(/\btile-\d+\b/, `tile-${this.grids[tx][ty]}`)
+      this.wrapEl.appendChild(tileEl)
+      await animate.exec(percent => {
+        if (percent <= 0.5) {
+          tileEl.style.transform = `scale(${1.2 * 2 * percent})`
+        } else {
+          tileEl.style.transform = `scale(${1.2 - 0.2 * 2 * (percent - 0.5)})`
+        }
+      }, 200)
+      console.log(toEl)
+      this.wrapEl.removeChild(toEl)
+      this.wrapEl.removeChild(fromEl)
+    } else {
+      fromEl.className = fromEl.className.replace(/\btile-\d+-\d+\b/, `tile-${tx}-${ty}`)
     }
-    await Promise.all([firstAnimate(), secondAnimate()])
   }
 
 
@@ -161,7 +157,7 @@ class App extends Component {
       }
       action.push({ type: 'create', ...act })
     }
-    this.setState(state => ({ score: score + state.score }))
+    else this.setState(state => ({ score: score + state.score }))
     this.dispatch(action)
   }
 
@@ -177,16 +173,17 @@ class App extends Component {
     let status
     let score = 0
     for (let i = 0; i < 4; i++) {
-      let border = 0
+      let hasMerged = false
       for (let j = 0; j < 3; j++) {
         let cur = j, lastJ = -1
-        while (cur >= border && (status = this.canMerge(grids[cur][i], grids[cur + 1][i]))) {
+        while (cur >= 0 && (status = this.canMerge(grids[cur][i], grids[cur + 1][i]))) {
+          if (status === 1 && hasMerged) break
           grids[cur][i] += grids[cur + 1][i]
           grids[cur + 1][i] = 0
           lastJ = cur
           if (status === 1) {
             score += grids[cur][i]
-            border = cur + 1
+            hasMerged = true
             break
           }
           cur--
@@ -209,16 +206,17 @@ class App extends Component {
     let score = 0
     let status
     for (let i = 0; i < 4; i++) {
-      let border = 3
+      let hasMerged = false
       for (let j = 3; j > 0; j--) {
         let cur = j, lastJ = -1
-        while (cur <= border && (status = this.canMerge(grids[cur][i], grids[cur - 1][i]))) {
+        while (cur < 4 && (status = this.canMerge(grids[cur][i], grids[cur - 1][i]))) {
+          if (status === 1 && hasMerged) break
           grids[cur][i] += grids[cur - 1][i]
           grids[cur - 1][i] = 0
           lastJ = cur
           if (status === 1) {
             score += grids[cur][i]
-            border = cur - 1
+            hasMerged = true
             break
           }
           cur++
@@ -241,16 +239,17 @@ class App extends Component {
     let score = 0
     let status
     for (let i = 0; i < 4; i++) {
-      let border = 0
+      let hasMerged = false
       for (let j = 0; j < 3; j++) {
         let cur = j, lastJ = -1
-        while (cur >= border && (status = this.canMerge(grids[i][cur], grids[i][cur + 1]))) {
+        while (cur >= 0 && (status = this.canMerge(grids[i][cur], grids[i][cur + 1]))) {
+          if (status === 1 && hasMerged) break
           grids[i][cur] += grids[i][cur + 1]
           grids[i][cur + 1] = 0
           lastJ = cur
           if (status === 1) {
             score += grids[i][cur]
-            border = cur + 1
+            hasMerged = true
             break
           }
           cur--
@@ -273,16 +272,17 @@ class App extends Component {
     let status
     let score = 0
     for (let i = 0; i < 4; i++) {
-      let border = 3
+      let hasMerged = false
       for (let j = 3; j > 0; j--) {
         let cur = j, lastJ = -1
-        while (cur <= border && (status = this.canMerge(grids[i][cur], grids[i][cur - 1]))) {
+        while (cur < 4 && (status = this.canMerge(grids[i][cur], grids[i][cur - 1]))) {
+          if (status === 1 && hasMerged) break
           grids[i][cur] += grids[i][cur - 1]
           grids[i][cur - 1] = 0
           lastJ = cur
           if (status === 1) {
             score += grids[i][cur]
-            border = cur - 1
+            hasMerged = true
             break
           }
           cur++
@@ -316,27 +316,13 @@ class App extends Component {
   }
 
   retry = () => {
-    const tiles = this.wrapEl.querySelectorAll('.tile')
-    tiles.forEach(tile => this.wrapEl.removeChild(tile))
-    this.grids = this.getInitialGrids()
-    const action = []
-    for (let i = 0; i < 2; i++) {
-      action.push({ type: 'create', ...this.generateOneGrid() })
-    }
-    this.dispatch(action)
     this.setState({
-      score: 0,
       isGameOver: false,
+      grids: this.getInitialGrids()
     })
   }
 
   render() {
-    const handles = {
-      onSwipedUp: this.handleUpCommand,
-      onSwipedDown: this.handleDownCommand,
-      onSwipedLeft: this.handleLeftCommand,
-      onSwipedRight: this.handleRightCommand,
-    }
     return (
       <div className="App">
         <Frame>
@@ -347,9 +333,7 @@ class App extends Component {
           <Score>
             Score: {this.state.score}
           </Score>
-          <ReactSwipeEvents {...handles}>
-            <Board grids={this.state.grids} />
-          </ReactSwipeEvents>
+          <Board grids={this.state.grids} />
         </Frame>
       </div>
     );
@@ -379,6 +363,21 @@ const Score = styled.div`
   margin-bottom: 10px;
 `;
 
+const appear = keyframes`
+  0% {
+    opacity: 0;
+    transform: scale(0); 
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1); 
+  }
+`
+
+const tileShow = css`
+  animation: ${appear} .2s ease;
+`
 
 
 
