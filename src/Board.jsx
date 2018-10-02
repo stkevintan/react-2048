@@ -16,7 +16,6 @@ const keys = [0, 1, 2, 3]
 export default class Board extends Component {
 
   render() {
-    const { action } = this.props
     return (
       <Box className="grids">
         {
@@ -40,16 +39,16 @@ const Box = styled('div')`
   background: #BBADA1;
   border-radius: 2px;
   padding: 5px;
-  display: block;
+  display: inline-block;
 `;
 
-const BoxRow = styled('div')`
-  text-align: center;
-  font-size: 0;
+const BoxRow = styled('div')` 
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `;
 
 const Grid = styled('div')`
-  display: inline-block;
   color: #776e65;
   border-radius: 2px;
   background: rgba(238, 228, 218, 0.35);

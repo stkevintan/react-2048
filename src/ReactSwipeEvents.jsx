@@ -2,11 +2,11 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 class ReactSwipeEvents extends React.Component {
-    
-    constructor (props, context) {
+
+    constructor(props, context) {
         super(props)
         this.state = { originalX: 0, originalY: 0 }
-        
+
         this.onTouchStart = this.onTouchStart.bind(this)
         this.onTouchMove = this.onTouchMove.bind(this)
         this.onTouchEnd = this.onTouchEnd.bind(this)
@@ -14,30 +14,35 @@ class ReactSwipeEvents extends React.Component {
         this.getDelta = this.getDelta.bind(this)
     }
 
-    onTouchStart (e) {
+    onTouchStart(e) {
         const touch = e.changedTouches[0]
         const current = this.getCurrentPosition(touch)
 
         this.setState({ originalX: current.x, originalY: current.y })
     }
 
-    onTouchMove (e) {
+    onTouchMove(e) {
         const touch = e.changedTouches[0]
         const delta = this.getDelta(touch)
         const current = this.getCurrentPosition(touch)
         this.props.onSwiping && this.props.onSwiping(e, this.state.originalX, this.state.originalY, current.x, current.y, delta.x, delta.y)
     }
 
-    onTouchEnd (e) {
+    onTouchEnd(e) {
         const touch = e.changedTouches[0]
         const delta = this.getDelta(touch)
         const current = this.getCurrentPosition(touch)
-        if (Math.abs(delta.x) > this.props.threshold) {
+        const xOffset = Math.abs(delta.x)
+        const yOffset = Math.abs(delta.y)
+        const { threshold } = this.props
+        if (xOffset > threshold && yOffset <= threshold
+            || xOffset > threshold && xOffset > yOffset) {
             if (delta.x > 0) this.props.onSwipedRight && this.props.onSwipedRight(e, this.state.originalX, current.x)
             if (delta.x < 0) this.props.onSwipedLeft && this.props.onSwipedLeft(e, this.state.originalX, current.x)
         }
 
-        if (Math.abs(delta.y) > this.props.threshold) {
+        if (yOffset > threshold && xOffset <= threshold
+        || xOffset> threshold && yOffset >= xOffset) {
             if (delta.y > 0) this.props.onSwipedDown && this.props.onSwipedDown(e, this.state.originalY, current.y)
             if (delta.y < 0) this.props.onSwipedUp && this.props.onSwipedUp(e, this.state.originalY, current.y)
         }
@@ -46,21 +51,21 @@ class ReactSwipeEvents extends React.Component {
         this.setState({ originalX: 0, originalY: 0 })
     }
 
-    getCurrentPosition (touch) {
+    getCurrentPosition(touch) {
         return {
             x: parseInt(touch.screenX),
             y: parseInt(touch.screenY)
         }
     }
 
-    getDelta (touch) {
+    getDelta(touch) {
         return {
             x: parseInt(touch.screenX) - this.state.originalX,
             y: parseInt(touch.screenY) - this.state.originalY
         }
     }
 
-    getModifiedProps () {
+    getModifiedProps() {
         const props = {
             ...this.props,
             onTouchStart: this.onTouchStart,
@@ -81,18 +86,18 @@ class ReactSwipeEvents extends React.Component {
         return props
     }
 
-    render () {
+    render() {
         const props = this.getModifiedProps()
         return React.createElement(
             this.props.nodeName,
             props,
             this.props.children
-         )
+        )
     }
 }
 
 ReactSwipeEvents.defaultProps = {
-    threshold: 30,
+    threshold: 20,
     nodeName: 'div'
 }
 

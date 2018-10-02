@@ -11,17 +11,21 @@ const keyMap = {
   39: 'right',
   40: 'down'
 }
-
+const toDir = [[0, 1], [1, 0], [0, -1], [-1, 0]]
 class App extends Component {
   constructor(props) {
     super(props)
     this.grids = this.getInitialGrids()
+    this.gridWidth = 100;
     this.state = {
       score: 0,
       isGameOver: false,
+      gameMode: 0,
     }
-    this.handleCommand = debounce(this.handleCommand, 150, true)
-    document.body.addEventListener('touchmove', e=> e.preventDefault(), {passive: false})
+    const x = window.matchMedia('(max-width: 520px)')
+    this.adjustTilePos(x)
+    x.addListener(this.adjustTilePos)
+    document.body.addEventListener('touchmove', e => e.preventDefault(), { passive: false })
   }
 
   getInitialGrids = () => {
@@ -47,14 +51,17 @@ class App extends Component {
     document.addEventListener('keyup', e => {
       const dir = keyMap[e.keyCode]
       if (!dir) return
-      console.log(dir)
+      // console.log(dir)
       this.handleCommand(dir)
     })
-    const x = window.matchMedia('(max-width: 520px)')
-    this.adjustTilePos(x)
-    x.addListener(this.adjustTilePos)
   }
   handleCommand = (dir) => {
+    if (this.state.gameMode === 1) {
+      this.setState({ gameMode: 2 })
+    }
+    if (this.state.isGameOver) {
+      return
+    }
     switch (dir) {
       default: return
       case 'up': return this.handleUpCommand()
@@ -65,23 +72,19 @@ class App extends Component {
   }
 
   adjustTilePos = (x) => {
+    if (x.matches) this.gridWidth = 58
+    else this.gridWidth = 100
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
-        const el = this.wrapEl.querySelector(`.tile-${i}-${j}`)
+        const el = document.querySelector(`.tile-${i}-${j}`)
         if (el) {
-          const grid = this.wrapEl.querySelector(`.grid-${i}-${j}`)
+          const grid = document.querySelector(`.grid-${i}-${j}`)
           const rect = this.getRelativeRect(grid, i, j)
-          console.log(rect)
           el.style.left = `${rect.x}px`
           el.style.top = `${rect.y}px`
         }
       }
     }
-  }
-
-
-  get wrapRect() {
-    return this.wrapEl ? this.wrapEl.getBoundingClientRect() : {}
   }
 
   clearTiles = () => {
@@ -101,9 +104,42 @@ class App extends Component {
       }
     }
   }
+  getGrid = (i, j, dirIndex) => {
+    if (dirIndex != null) {
+      i += toDir[dirIndex][0]
+      j += toDir[dirIndex][1]
+    }
+    if (i < 0 || j < 0) return null
+    if (i >= 4 || j >= 4) return null
+    return this.grids[i][j]
+  }
+
+  checkGrids = () => {
+    const { grids } = this
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        const grid = grids[i][j]
+        if (grid === 2048 && this.state.gameMode === 0) {
+          this.setState({ gameMode: 1 })
+          return
+        }
+        if (grid === 0) {
+          return
+        }
+        for (let k = 0; k < toDir.length; k++) {
+          const nearGrid = this.getGrid(i, j, k)
+          if (!nearGrid) continue
+          if (this.canMerge(grid, nearGrid) > 0 || this.canMerge(nearGrid, grid) > 0) {
+            return
+          }
+        }
+      }
+    }
+    this.setState({ isGameOver: true })
+  }
 
   dispatch = async (action) => {
-    console.log(action)
+    // console.log(action)
     const asyncCreateTask = []
     const asyncMoveTask = []
     for (let i = 0; i < action.length; i++) {
@@ -112,8 +148,9 @@ class App extends Component {
     }
     await Promise.all(asyncMoveTask)
     await Promise.all(asyncCreateTask)
-    console.log('all animate done! now clean')
+    // console.log('all animate done! now clean')
     this.clearTiles()
+    this.checkGrids()
   }
   calcPos = (i, j, width, height) => {
     return {
@@ -122,11 +159,8 @@ class App extends Component {
     }
   }
   getRelativeRect = (el, i, j) => {
-    const rect = el.getBoundingClientRect()
     return {
-      ...this.calcPos(i, j, rect.width, rect.height),
-      width: rect.width,
-      height: rect.height,
+      ...this.calcPos(i, j, this.gridWidth, this.gridWidth),
     }
   }
 
@@ -150,7 +184,7 @@ class App extends Component {
     await animate.exec(percent => {
       tileEl.style.opacity = 1 * percent
       tileEl.style.transform = `scale(${1 * percent})`
-    }, 300, easeInCubic)
+    }, 200, easeInCubic)
   }
 
   dispatchMove = async ({ from, to, merged }) => {
@@ -169,7 +203,7 @@ class App extends Component {
         if (!fromEl) return
         fromEl.style.left = `${percent * (deltaLeft) + fromRect.x}px`
         fromEl.style.top = `${percent * (deltaTop) + fromRect.y}px`
-      }, 150)
+      }, 140)
     }
     const secondAnimate = async () => {
       fromEl.className = fromEl.className.replace(/\btile-\d+-\d+\b/, `tile-${tx}-${ty}`)
@@ -191,7 +225,7 @@ class App extends Component {
           } else {
             tileEl.style.transform = `scale(${1.2 - 0.2 * 2 * (percent - 0.5)})`
           }
-        }, 300)
+        }, 260)
       }
     }
     await Promise.all([firstAnimate(), secondAnimate()])
@@ -208,7 +242,7 @@ class App extends Component {
       }
       action.push({ type: 'create', ...act })
     }
-    console.table(this.grids)
+    // console.table(this.grids)
     this.setState(state => ({ score: score + state.score }))
     this.dispatch(action)
   }
@@ -379,6 +413,7 @@ class App extends Component {
     this.setState({
       score: 0,
       isGameOver: false,
+      gameMode: 0,
     })
   }
 
@@ -392,19 +427,29 @@ class App extends Component {
     return (
       <div className="App">
         <Frame>
-          {this.state.isGameOver && <Cover>
-            <p>Game Over</p>
-            <a onClick={this.retry} href="javascript:void(0)">Try again!</a>
-          </Cover>}
-          <div className={css` display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;`}>
+          <div className={css`display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;`}>
             <Score>
               Score: {this.state.score}
             </Score>
+            {
+              this.state.gameMode === 2 && <div className={css`color: red;`}>Endless Mode</div>
+            }
             <button className="btn" onClick={this.retry}>New Game</button>
           </div>
-          <ReactSwipeEvents {...handles}>
-            <Board grids={this.state.grids} />
-          </ReactSwipeEvents>
+          <div className={css`margin: 0 10px; position:relative;`}>
+            {this.state.isGameOver && <Cover>
+              <p>Game Over</p>
+              <a onClick={this.retry} href="javascript:void(0)">Try again!</a>
+            </Cover>}
+            {
+              this.state.gameMode === 1 && <Cover>
+                <p>You Win!</p>
+              </Cover>
+            }
+            <ReactSwipeEvents {...handles}>
+              <Board grids={this.state.grids} />
+            </ReactSwipeEvents>
+          </div>
           <p>Created by Kevin Tan. Fork it on <a href="https://github.com/stkevintan/react-2048" target="_blank">Github</a></p>
         </Frame>
       </div>
@@ -416,19 +461,36 @@ class App extends Component {
 const Frame = styled('div')`
       display: inline-block;
       position: relative;
+      padding: 15px;
       margin: 20px auto;
+      background: #f0f0f0;
       /* padding: 20px 40px; */
       /* box-shadow: 1px 1px 1px rgba(0,0,0,0.2), -1px -1px 1px rgba(0,0,0,0.1); */
     `;
 
 const Cover = styled('div')`
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.2);
-    `;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(107, 92, 92, 0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 17;
+    color: #fff;
+    font-size: 30px;
+    font-weight: bold;
+    p{
+      margin: 0;
+    }
+    a{
+      text-decoration: none;
+    }
+}
+`;
 
 const Score = styled('div')`
       text-align: left;
