@@ -9,6 +9,14 @@ body {
   box-sizing: border-box;
 }
 
+a{
+  color: #277ecf;
+  transition: all .2s ease-out;
+}
+a:hover{
+  color: #0a59a3;
+}
+
 .btn{
   cursor: pointer;
   border: none;
@@ -19,6 +27,10 @@ body {
   font-size: 17px;
   padding: 8px 10px;
   border-radius: 2px;
+  transition: all .2s ease-out;
+}
+.btn:hover{
+  background: #0a59a3;
 }
 .tile {
   border-radius: 3px;

@@ -404,6 +404,7 @@ class App extends Component {
           <ReactSwipeEvents {...handles}>
             <Board grids={this.state.grids} />
           </ReactSwipeEvents>
+          <p>By Kevin Tan, Fork it on <a href="https://github.com/stkevintan/react-2048" target="_blank">Github</a></p>
         </Frame>
       </div>
     );
