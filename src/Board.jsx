@@ -44,12 +44,12 @@ const Box = styled('div')`
 `;
 
 const BoxRow = styled('div')`
-  display:flex;
-  justify-content: center;
-  align-items: center;
+  text-align: center;
+  font-size: 0;
 `;
 
 const Grid = styled('div')`
+  display: inline-block;
   color: #776e65;
   border-radius: 2px;
   background: rgba(238, 228, 218, 0.35);

@@ -69,7 +69,7 @@ class App extends Component {
         const el = this.wrapEl.querySelector(`.tile-${i}-${j}`)
         if (el) {
           const grid = this.wrapEl.querySelector(`.grid-${i}-${j}`)
-          const rect = this.getRelativeRect(grid)
+          const rect = this.getRelativeRect(grid, i, j)
           console.log(rect)
           el.style.left = `${rect.x}px`
           el.style.top = `${rect.y}px`
@@ -114,12 +114,16 @@ class App extends Component {
     console.log('all animate done! now clean')
     this.clearTiles()
   }
-
-  getRelativeRect = (el) => {
+  calcPos = (i, j, width, height) => {
+    return {
+      x: 10 * (j + 1) + j * width,
+      y: 10 * (i + 1) + i * height,
+    }
+  }
+  getRelativeRect = (el, i, j) => {
     const rect = el.getBoundingClientRect()
     return {
-      x: rect.x - this.wrapRect.x,
-      y: rect.y - this.wrapRect.y,
+      ...this.calcPos(i, j, rect.width, rect.height),
       width: rect.width,
       height: rect.height,
     }
@@ -133,7 +137,7 @@ class App extends Component {
     const [x, y] = pos
     const el = document.querySelector(`.grid-${x}-${y}`)
     const tileEl = document.createElement('div')
-    const elRect = this.getRelativeRect(el)
+    const elRect = this.getRelativeRect(el, x, y)
     tileEl.style.cssText = `
     position: absolute; 
     left:${elRect.x}px; 
@@ -153,8 +157,8 @@ class App extends Component {
     const [tx, ty] = to
     const fromEl = document.querySelector(`.tile-${fx}-${fy}`)
     const targetEl = document.querySelector(`.grid-${tx}-${ty}`)
-    const fromRect = this.getRelativeRect(fromEl)
-    const targetRect = this.getRelativeRect(targetEl)
+    const fromRect = this.getRelativeRect(fromEl, fx, fy)
+    const targetRect = this.getRelativeRect(targetEl, tx, ty)
     const deltaLeft = targetRect.x - fromRect.x
     const deltaTop = targetRect.y - fromRect.y
     // move fromEl to targetEl
@@ -380,7 +384,7 @@ class App extends Component {
   render() {
     const handles = {
       onSwipedUp: () => this.handleCommand('up'),
-      onSwipedDown: () => his.handleCommand('down'),
+      onSwipedDown: () => this.handleCommand('down'),
       onSwipedLeft: () => this.handleCommand('left'),
       onSwipedRight: () => this.handleCommand('right'),
     }
