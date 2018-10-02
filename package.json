@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "color": "^3.0.0",
+    "debounce": "^1.2.0",
     "emotion": "^9.2.10",
     "eslint-config-react-app": "^3.0.3",
     "eslint-loader": "^2.1.1",

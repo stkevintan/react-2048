@@ -4,7 +4,7 @@ import './App.css';
 import Board from './Board'
 import animate, { easeInCubic } from './animate';
 import ReactSwipeEvents from './ReactSwipeEvents'
-
+import debounce from 'debounce'
 const keyMap = {
   37: 'left',
   38: 'up',
@@ -20,6 +20,7 @@ class App extends Component {
       score: 0,
       isGameOver: false,
     }
+    this.handleCommand = debounce(this.handleCommand, 150, true)
   }
 
   getInitialGrids = () => {
@@ -34,6 +35,7 @@ class App extends Component {
     return grids
   }
 
+
   componentDidMount() {
     this.wrapEl = document.querySelector('.grids')
     const action = []
@@ -45,18 +47,22 @@ class App extends Component {
       const dir = keyMap[e.keyCode]
       if (!dir) return
       console.log(dir)
-      switch (dir) {
-        default: return
-        case 'up': return this.handleUpCommand()
-        case 'down': return this.handleDownCommand()
-        case 'left': return this.handleLeftCommand()
-        case 'right': return this.handleRightCommand()
-      }
+      this.handleCommand(dir)
     })
     const x = window.matchMedia('(max-width: 520px)')
     this.adjustTilePos(x)
     x.addListener(this.adjustTilePos)
   }
+  handleCommand = (dir) => {
+    switch (dir) {
+      default: return
+      case 'up': return this.handleUpCommand()
+      case 'down': return this.handleDownCommand()
+      case 'left': return this.handleLeftCommand()
+      case 'right': return this.handleRightCommand()
+    }
+  }
+
   adjustTilePos = (x) => {
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
