@@ -40,10 +40,7 @@ const Box = styled('div')`
   background: #BBADA1;
   border-radius: 2px;
   padding: 5px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: cneter;
+  display: block;
 `;
 
 const BoxRow = styled('div')`

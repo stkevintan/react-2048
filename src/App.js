@@ -379,10 +379,10 @@ class App extends Component {
 
   render() {
     const handles = {
-      onSwipedUp: this.handleCommand('up'),
-      onSwipedDown: this.handleCommand('down'),
-      onSwipedLeft: this.handleCommand('left'),
-      onSwipedRight: this.handleCommand('right'),
+      onSwipedUp: () => this.handleCommand('up'),
+      onSwipedDown: () => his.handleCommand('down'),
+      onSwipedLeft: () => this.handleCommand('left'),
+      onSwipedRight: () => this.handleCommand('right'),
     }
     return (
       <div className="App">
