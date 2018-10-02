@@ -9,7 +9,7 @@ const url = require('url');
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
 
-const envPublicUrl = process.env.PUBLIC_URL;
+const envPublicUrl = '/react-2048/';
 
 function ensureSlash(path, needsSlash) {
   const hasSlash = path.endsWith('/');
