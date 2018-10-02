@@ -4,7 +4,6 @@ import './App.css';
 import Board from './Board'
 import animate, { easeInCubic } from './animate';
 import ReactSwipeEvents from './ReactSwipeEvents'
-import debounce from 'debounce'
 const keyMap = {
   37: 'left',
   38: 'up',
@@ -397,7 +396,7 @@ class App extends Component {
     }
     const randomIndex = Math.floor(Math.random() * emptyGrids.length)
     const [x, y] = emptyGrids[randomIndex]
-    this.grids[x][y] = Math.random() > 0.2 ? 2 : 4
+    this.grids[x][y] = Math.random() < 0.9 ? 2 : 4
     return { pos: [x, y], val: this.grids[x][y] }
   }
 
@@ -437,16 +436,16 @@ class App extends Component {
             <button className="btn" onClick={this.retry}>New Game</button>
           </div>
           <div className={css`margin: 0 10px; position:relative;`}>
-            {this.state.isGameOver && <Cover>
-              <p>Game Over</p>
-              <a onClick={this.retry} href="javascript:void(0)">Try again!</a>
-            </Cover>}
-            {
-              this.state.gameMode === 1 && <Cover>
-                <p>You Win!</p>
-              </Cover>
-            }
             <ReactSwipeEvents {...handles}>
+              {this.state.isGameOver && <Cover>
+                <p>Game Over</p>
+                <a onClick={this.retry} href="javascript:void(0)">Try again!</a>
+              </Cover>}
+              {
+                this.state.gameMode === 1 && <Cover>
+                  <p>You Win!</p>
+                </Cover>
+              }
               <Board grids={this.state.grids} />
             </ReactSwipeEvents>
           </div>
@@ -462,7 +461,7 @@ const Frame = styled('div')`
       display: inline-block;
       position: relative;
       padding: 15px;
-      margin: 20px auto;
+      margin: auto;
       background: #f0f0f0;
       /* padding: 20px 40px; */
       /* box-shadow: 1px 1px 1px rgba(0,0,0,0.2), -1px -1px 1px rgba(0,0,0,0.1); */
