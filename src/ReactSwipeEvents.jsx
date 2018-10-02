@@ -32,7 +32,6 @@ class ReactSwipeEvents extends React.Component {
         const touch = e.changedTouches[0]
         const delta = this.getDelta(touch)
         const current = this.getCurrentPosition(touch)
-
         if (Math.abs(delta.x) > this.props.threshold) {
             if (delta.x > 0) this.props.onSwipedRight && this.props.onSwipedRight(e, this.state.originalX, current.x)
             if (delta.x < 0) this.props.onSwipedLeft && this.props.onSwipedLeft(e, this.state.originalX, current.x)
@@ -93,7 +92,7 @@ class ReactSwipeEvents extends React.Component {
 }
 
 ReactSwipeEvents.defaultProps = {
-    threshold: 10,
+    threshold: 30,
     nodeName: 'div'
 }
 
