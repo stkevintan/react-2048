@@ -24,7 +24,7 @@ export default class Board extends Component {
             <BoxRow key={keys[index]}>
               {
                 grid.map((cell, index2) => (
-                  <Grid className={`grid-${index}-${index2}`} key={keys[index2]} />
+                  <Grid className={`grid grid-${index}-${index2}`} key={keys[index2]} />
                 ))
               }
             </BoxRow>
@@ -53,13 +53,9 @@ const BoxRow = styled('div')`
 `;
 
 const Grid = styled('div')`
-  width: 100px;
-  height: 100px;
-  font-size: 55px;
   color: #776e65;
   border-radius: 2px;
   background: rgba(238, 228, 218, 0.35);
-  line-height: 100px;
   margin: 5px;
 `
 

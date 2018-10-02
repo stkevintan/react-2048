@@ -9,6 +9,17 @@ body {
   box-sizing: border-box;
 }
 
+.btn{
+  cursor: pointer;
+  border: none;
+  outline: none;
+  -webkit-appearance: none;
+  background: #2582d9;
+  color: #fff;
+  font-size: 17px;
+  padding: 8px 10px;
+  border-radius: 2px;
+}
 .tile {
   border-radius: 3px;
   background: #eee4da;
@@ -16,6 +27,21 @@ body {
   font-weight: bold;
   z-index: 10;
   font-size: 55px;
+}
+
+.tile, .grid {
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
+}
+
+@media screen and (max-width: 520px) {
+  .tile, .grid {
+    width: 58px;
+    height: 58px;
+    line-height: 58px;
+    font-size: 35px;
+  }
 }
 
 .tile.tile-2 {

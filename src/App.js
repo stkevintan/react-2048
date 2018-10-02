@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import styled from 'react-emotion'
+import styled, { css } from 'react-emotion'
 import './App.css';
 import Board from './Board'
 import animate, { easeInCubic } from './animate';
@@ -36,7 +36,6 @@ class App extends Component {
 
   componentDidMount() {
     this.wrapEl = document.querySelector('.grids')
-    this.wrapRect = this.wrapEl.getBoundingClientRect()
     const action = []
     for (let i = 0; i < 2; i++) {
       action.push({ type: 'create', ...this.generateOneGrid() })
@@ -45,6 +44,7 @@ class App extends Component {
     document.addEventListener('keyup', e => {
       const dir = keyMap[e.keyCode]
       if (!dir) return
+      console.log(dir)
       switch (dir) {
         default: return
         case 'up': return this.handleUpCommand()
@@ -53,6 +53,46 @@ class App extends Component {
         case 'right': return this.handleRightCommand()
       }
     })
+    const x = window.matchMedia('(max-width: 520px)')
+    this.adjustTilePos(x)
+    x.addListener(this.adjustTilePos)
+  }
+  adjustTilePos = (x) => {
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        const el = this.wrapEl.querySelector(`.tile-${i}-${j}`)
+        if (el) {
+          const grid = this.wrapEl.querySelector(`.grid-${i}-${j}`)
+          const rect = this.getRelativeRect(grid)
+          console.log(rect)
+          el.style.left = `${rect.x}px`
+          el.style.top = `${rect.y}px`
+        }
+      }
+    }
+  }
+
+
+  get wrapRect() {
+    return this.wrapEl ? this.wrapEl.getBoundingClientRect() : {}
+  }
+
+  clearTiles = () => {
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 4; j++) {
+        const els = this.wrapEl.querySelectorAll(`.tile-${i}-${j}`)
+        if (els.length > 1) {
+          let hasKeeped = false
+          for (let k = 0; k < els.length; k++) {
+            if (!hasKeeped && +els[k].textContent === this.grids[i][j]) {
+              hasKeeped = true
+            } else {
+              this.remove(els[k])
+            }
+          }
+        }
+      }
+    }
   }
 
   dispatch = async (action) => {
@@ -65,7 +105,8 @@ class App extends Component {
     }
     await Promise.all(asyncMoveTask)
     await Promise.all(asyncCreateTask)
-    console.log('all animate done!')
+    console.log('all animate done! now clean')
+    this.clearTiles()
   }
 
   getRelativeRect = (el) => {
@@ -78,6 +119,10 @@ class App extends Component {
     }
   }
 
+  remove = (el) => {
+    el.parentNode.removeChild(el)
+  }
+
   dispatchCreate = async ({ pos, val }) => {
     const [x, y] = pos
     const el = document.querySelector(`.grid-${x}-${y}`)
@@ -87,8 +132,6 @@ class App extends Component {
     position: absolute; 
     left:${elRect.x}px; 
     top: ${elRect.y}px;
-    width: ${elRect.width}px;
-    line-height: ${elRect.height}px;
     `
     tileEl.className = `tile tile-${val} tile-${x}-${y}`
     tileEl.textContent = val
@@ -99,12 +142,11 @@ class App extends Component {
     }, 300, easeInCubic)
   }
 
-  dispatchMove = async ({ from, to }) => {
+  dispatchMove = async ({ from, to, merged }) => {
     const [fx, fy] = from
     const [tx, ty] = to
     const fromEl = document.querySelector(`.tile-${fx}-${fy}`)
     const targetEl = document.querySelector(`.grid-${tx}-${ty}`)
-    const toEl = document.querySelector(`.tile-${tx}-${ty}`)
     const fromRect = this.getRelativeRect(fromEl)
     const targetRect = this.getRelativeRect(targetEl)
     const deltaLeft = targetRect.x - fromRect.x
@@ -116,22 +158,21 @@ class App extends Component {
         if (!fromEl) return
         fromEl.style.left = `${percent * (deltaLeft) + fromRect.x}px`
         fromEl.style.top = `${percent * (deltaTop) + fromRect.y}px`
-      }, 100)
+      }, 150)
     }
     const secondAnimate = async () => {
-      if (toEl) {
+      fromEl.className = fromEl.className.replace(/\btile-\d+-\d+\b/, `tile-${tx}-${ty}`)
+      if (merged) {
         const tileEl = document.createElement('div')
         tileEl.style.cssText = `
         position: absolute; 
         left:${targetRect.x}px; 
         top: ${targetRect.y}px;
-        width: ${targetRect.width}px;
-        line-height: ${targetRect.height}px;
         transform: scale(0)
         z-index: 10
       `
         tileEl.textContent = this.grids[tx][ty]
-        tileEl.className = toEl.className.replace(/\btile-\d+\b/, `tile-${this.grids[tx][ty]}`)
+        tileEl.className = fromEl.className.replace(/\btile-\d+\b/, `tile-${this.grids[tx][ty]}`)
         this.wrapEl.appendChild(tileEl)
         await animate.exec(percent => {
           if (percent <= 0.5) {
@@ -139,12 +180,7 @@ class App extends Component {
           } else {
             tileEl.style.transform = `scale(${1.2 - 0.2 * 2 * (percent - 0.5)})`
           }
-        }, 250)
-
-        if (fromEl.parentElement === this.wrapEl) this.wrapEl.removeChild(fromEl)
-        if (toEl.parentElement === this.wrapEl) this.wrapEl.removeChild(toEl)
-      } else {
-        fromEl.className = fromEl.className.replace(/\btile-\d+-\d+\b/, `tile-${tx}-${ty}`)
+        }, 300)
       }
     }
     await Promise.all([firstAnimate(), secondAnimate()])
@@ -161,6 +197,7 @@ class App extends Component {
       }
       action.push({ type: 'create', ...act })
     }
+    console.table(this.grids)
     this.setState(state => ({ score: score + state.score }))
     this.dispatch(action)
   }
@@ -194,6 +231,7 @@ class App extends Component {
         if (lastJ !== -1 && lastJ !== j + 1) {
           action.push({
             type: 'move',
+            merged: status === 1,
             from: [j + 1, i],
             to: [lastJ, i]
           })
@@ -226,6 +264,7 @@ class App extends Component {
         if (lastJ !== -1 && lastJ !== j - 1) {
           action.push({
             type: 'move',
+            merged: status === 1,
             from: [j - 1, i],
             to: [lastJ, i]
           })
@@ -258,6 +297,7 @@ class App extends Component {
         if (lastJ !== -1 && lastJ !== j + 1) {
           action.push({
             type: 'move',
+            merged: status === 1,
             from: [i, j + 1],
             to: [i, lastJ]
           })
@@ -290,6 +330,7 @@ class App extends Component {
         if (lastJ !== -1 && lastJ !== j - 1) {
           action.push({
             type: 'move',
+            merged: status === 1,
             from: [i, j - 1],
             to: [i, lastJ]
           })
@@ -344,9 +385,12 @@ class App extends Component {
             <p>Game Over</p>
             <a onClick={this.retry} href="javascript:void(0)">Try again!</a>
           </Cover>}
-          <Score>
-            Score: {this.state.score}
-          </Score>
+          <div className={css` display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;`}>
+            <Score>
+              Score: {this.state.score}
+            </Score>
+            <button className="btn" onClick={this.retry}>New Game</button>
+          </div>
           <ReactSwipeEvents {...handles}>
             <Board grids={this.state.grids} />
           </ReactSwipeEvents>
@@ -358,26 +402,25 @@ class App extends Component {
 
 
 const Frame = styled('div')`
-  display: inline-block;
-  position: relative;
-  margin: 20px auto;
-  padding: 20px 40px;
-  box-shadow: 1px 1px 1px rgba(0,0,0,0.2), -1px -1px 1px rgba(0,0,0,0.1);
-`;
+      display: inline-block;
+      position: relative;
+      margin: 20px auto;
+      /* padding: 20px 40px; */
+      /* box-shadow: 1px 1px 1px rgba(0,0,0,0.2), -1px -1px 1px rgba(0,0,0,0.1); */
+    `;
 
 const Cover = styled('div')`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.2);
-`;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.2);
+    `;
 
 const Score = styled('div')`
-  text-align: left;
-  margin-bottom: 10px;
-`;
+      text-align: left;
+    `;
 
 
 
